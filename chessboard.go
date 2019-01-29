@@ -22,7 +22,8 @@ type Chessboard struct {
 	AllPieces   Bitboard
 }
 
-// New sets up the initial position of all pieces and returns a pointer to a Chessboard object
+// NewChessboard sets up the initial position of all pieces and returns a pointer to a Chessboard object
+// TODO: Remove in favor of FEN setup later
 func NewChessboard() *Chessboard {
 	chessBoard := Chessboard{
 		WhiteRooks:   Bitboard(0x0000000000000081),
@@ -42,8 +43,19 @@ func NewChessboard() *Chessboard {
 	return &chessBoard
 }
 
-func ValidPawnMoves(b Bitboard) Bitboard {
-	return b << 8
+func (c *Chessboard) ValidPawnMoves(turn Color) Bitboard {
+	validMoves := c.WhitePawns << 8
+
+	// Any pawn that was previously on rank 2 can move an additional square forward
+	onRank3, _ := MaskRank(validMoves, 3)
+	validMoves = validMoves | onRank3<<8
+
+	// Attacks
+	possibleAttacks := c.WhitePawns << 7
+	possibleAttacks = possibleAttacks & c.BlackPieces
+	validMoves = validMoves | possibleAttacks
+
+	return validMoves
 }
 
 type Square int8
